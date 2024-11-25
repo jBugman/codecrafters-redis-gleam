@@ -1,4 +1,4 @@
-//// RESP (REdis Serialization Protocol) implementation version 2, see https://redis.io/docs/latest/develop/reference/protocol-spec/
+//// RESP2 (REdis Serialization Protocol) implementation, see https://redis.io/docs/latest/develop/reference/protocol-spec/ for details.
 
 import gleam/bit_array
 import gleam/bytes_tree.{type BytesTree}
@@ -13,6 +13,7 @@ pub type RESP {
   SimpleError(String)
   Integer(Int)
   BulkString(String)
+  NullString
   Array(List(RESP))
 }
 
@@ -44,6 +45,10 @@ pub fn encode(resp: RESP) -> BytesTree {
       |> bytes_tree.append_string(s)
       |> bytes_tree.append_string(crlf)
     }
+
+    NullString ->
+      bytes_tree.from_string("$-1")
+      |> bytes_tree.append_string(crlf)
 
     Array(xs) -> {
       let len = list.length(xs) |> int.to_string
